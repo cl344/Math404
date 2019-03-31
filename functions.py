@@ -140,41 +140,71 @@ def gauss_elim(M):
 	(This method only works in Z/2Z.)
 
 	:param M: Matrix
-	:return:
+	:return: List of all non-zero solutions
 	"""
-	marks = [False]*len(M[0])
+	marks = [False]*len(M[0])  # If a pivot has been constructed in this column
+	pivot_row = [-1] * len(M[0])  # For each pivot column, the corresponding
+									# row for which value is 1
+
+	# Find a pivot in all columns, and adjust the other rows accordingly
 	for i in range(len(M)): #do for all rows
 		row = M[i]
-		#print(row)
-
-		for num in row: #search for pivot
-			if num == 1:
-				#print("found pivot at column " + str(row.index(num)+1))
-				j = row.index(num) # column index
+		for j in range(len(row)): #search for pivot
+			if row[j] == 1:
+				# Make this a pivot column
 				marks[j] = True
+				pivot_row[j] = i
 
-				for k in chain(range(0,i),range(i+1,len(M))): #search for other 1s in the same column
+				# Add this row to all other rows with this column being 1
+				for k in chain(range(0, i), range(i+1, len(M))):
 					if M[k][j] == 1:
-						for i in range(len(M[k])):
-							M[k][i] = (M[k][i] + row[i])%2
+						for l in range(len(M[k])):
+							M[k][l] = (M[k][l] + row[l]) % 2
 				break
 
-	print(marks)
-	M = transpose(M)
-	#mprint(M)
+	# Find all free columns: Each column corresponds to a free variable t,
+	# and values of the pivot column variables can then be deduced.
+	# This currently takes O(2^(free columns)) time.
+	free_cols = [i for i in range(len(M[0])) if not marks[i]]
+	if not free_cols:
+		return []  # Only has trivial solution: fail
 
-	sol_rows = []
-	for i in range(len(marks)): #find free columns (which have now become rows)
-		if marks[i]== False:
-			free_row = [M[i],i]
-			sol_rows.append(free_row)
+	def find_solution(assignment):
+		"""
+		Compute a solution given an assignment of free variables.
+		:param assignment: Value of each free variables (corresponding to
+			free_cols)
+		:return: Solution to Mx=0 (mod 2)
+		"""
+		sol = []
+		free_index = 0
+		for i in range(len(M[0])):
+			if marks[i]:  # Deduce values of pivot variables
+				sol.append(sum(M[pivot_row[i]][free_cols[j]] * assignments[j]
+								for j in range(len(free_cols))) % 2)
+			else:
+				sol.append(assignment[free_index])
+				free_index += 1
+		return sol
 
-	if not sol_rows:
-		return("No solution found. Need more smooth numbers.")
+	# Search over all assignments of free variables by brute force
+	solutions = []
+	assignments = [0] * (len(free_cols) - 1) + [1]  # Value of each free variable
+	while assignments[0] <= 1:
+		solutions.append(find_solution(assignments))
+		assignments[len(assignments) - 1] += 1
+		i = len(assignments) - 1
+		while i > 0 and assignments[i] > 1:
+			assignments[i - 1] += 1
+			assignments[i] -= 2
+			i -= 1
 
-	print("Found {} potential solutions".format(len(sol_rows)))
-	return sol_rows,marks,M
+	return solutions
 
+
+M = [[0,0,0,0,1], [0,1,1,0,0], [1,0,1,1,0],[0,0,0,0,0]]
+print(M)
+print(gauss_elim(M))
 
 
 N = 63787

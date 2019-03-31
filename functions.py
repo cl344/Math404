@@ -72,7 +72,7 @@ def factorize(n, factor_base):
 	return factors
 
 
-def gcd(a,b):
+def gcd(a, b):
 	"""
 	Calculate the Greatest Common Divisor.
 	:param a: a

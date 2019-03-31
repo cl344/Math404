@@ -1,83 +1,53 @@
+from functions import *
+
 N = 63787
 B = 19
 
-cand_num_target = 7  # Number of x^2-n candidates required
-cand_num = 0  # Number of x^2-n candidates found
-cand = B+1  # Current x
-
-B_list = get_prime(B);  # List of primes
+B_list = get_prime(B)  # List of primes
 
 
-num = []
-primes = []
+def sieve(N, B):
+	"""
+	Perform the Quadratic Sieve.
 
-while(cand_num < cand_num_target):
-	cand_sqr = (cand**2) % N
-	cand_list = is_cand(cand_sqr, B_list)
-	if(cand_list):
-		cand_num = cand_num + 1
-		num.append(cand)
-		primes.append(cand_list)
-	
+	:param N: N
+	:param B: Bound B for small primes
+	:return: A factor of N, or -1 if there are none (Need to increase B)
+	"""
+	# Placeholder variables (TODO)
+	cand_num_target = 7  # Number of x^2-n candidates required
+	cand_num = 0  # Number of x^2-n candidates found
+	cand = B+1  # Current x
 
-	cand = cand + 1
+	num = []
+	primes = []
 
+	# Accumulate x^2-n's and B-smooth remainders
+	while cand_num < cand_num_target:
+		cand_sqr = (cand**2) % N  # x^2 - n
+		cand_list = is_cand(cand_sqr, B_list)  # Check B-smoothness
+		if cand_list:
+			cand_num = cand_num + 1
+			num.append(cand)
+			primes.append(cand_list)
+		cand = cand + 1
 
-select_list = select_cand(num, primes)
+	# Choose a subset of x^2-n's whose product is also a square mod n
+	# (i.e. exponent vectors sum up to 0 mod 2)
+	select_list = select_cand(num, primes)
 
-x = 1
-y = 1
+	# Compute x and y s.t. x^2 = y^2 (mod N) and try getting a factor
+	# TODO: Back out if x = y (mod N)
+	x = 1
+	y = 1
 
-for i = 1 in range(len(num)):
-	x = x*num[i]
-	y = y*(B_list[i]**primes[i])
+	for i in range(len(num)):
+		x = x*num[i]
+		y = y*(B_list[i]**primes[i])
 
-y = sqrt(y)
+	y = sqrt(y)
 
-return gcd(x,y)
-
-
-
-
-
-def get_prime(B):
-	prime_list = []
-	for num in range(B+1):
-	# prime numbers are greater than 1
-		if num > 1:
-			check_prime = True
-			for i in range(2, num):
-				if (num % i) == 0:
-					check_prime = False
-					break
-
-
-			if(check_prime):
-				prime_list.append(num)
-
-	return prime_list 
+	return gcd(x,y)
 
 
-def is_cand(n, prime_list):
-	exp_list = []
-	for p in prime_list:
-		occur = 0
-		while(n%p == 0):
-			occur = occur+1
-			n = n/p
-		exp_list.append(occur)
-
-	return exp_list
-
-def gcd(a,b): 
-	if(b==0):
-		return a
-	else:
-		return gcd(b,a%b)
-
-
-
-
-
-
-
+print(sieve(N, B))

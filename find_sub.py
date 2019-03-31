@@ -2,6 +2,21 @@ import numpy as np
 
 
 def find_subset(nums, exp_vecs):
+	"""
+	Given a list of numbers (x^2-n) and their corresponding exponent
+	vectors, find a subset of them whose exponent vectors sum up to
+	0 mod 2.
+
+	Need to convert the exponent vectors to a matrix mod 2, and then
+	use Gaussian Reduction.
+
+	:param nums: List of numbers (of the form x^2-n), given as either
+		x's or x^2-n's (depending on implementation)
+	:param exp_vecs: Exponent vectors of each number (can be either
+		list or dict, depending on implementation)
+	:return: List of chosen numbers, or empty list if solution does
+		not exist
+	"""
 
 	#nums - list of x^2-n that are B-smooth
 	#exp_vecs - list (or dict) of exponent vector lists (assume dict here)

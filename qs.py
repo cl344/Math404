@@ -1,11 +1,11 @@
 N = 63787
 B = 19
 
-cand_num_target = 7
-cand_num = 0
-cand = B+1
+cand_num_target = 7  # Number of x^2-n candidates required
+cand_num = 0  # Number of x^2-n candidates found
+cand = B+1  # Current x
 
-B_list = get_prime(B);
+B_list = get_prime(B);  # List of primes
 
 
 num = []
@@ -43,17 +43,17 @@ return gcd(x,y)
 def get_prime(B):
 	prime_list = []
 	for num in range(B+1):
-    # prime numbers are greater than 1
-   		if num > 1:
-   			check_prime = True
-   			for i in range(2, num):
-   				if (num % i) == 0:
-   					check_prime = False
-   					break
+	# prime numbers are greater than 1
+		if num > 1:
+			check_prime = True
+			for i in range(2, num):
+				if (num % i) == 0:
+					check_prime = False
+					break
 
 
-   			if(check_prime):
-   				prime_list.append(num)
+			if(check_prime):
+				prime_list.append(num)
 
 	return prime_list 
 
@@ -70,10 +70,10 @@ def is_cand(n, prime_list):
 	return exp_list
 
 def gcd(a,b): 
-    if(b==0): 
-        return a 
-    else: 
-        return gcd(b,a%b) 
+	if(b==0):
+		return a
+	else:
+		return gcd(b,a%b)
 
 
 

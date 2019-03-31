@@ -4,129 +4,176 @@ from itertools import chain
 
 
 def get_prime(B):
+	"""
+	Find all the primes up to B. There should be pi(B) of them.
+
+	:param B: Bound for primes
+	:return: List of all primes in [2,B]
+	"""
+	# TODO (Optional): Improve efficiency using sieving idea (??)
 	prime_list = []
 	for num in range(B+1):
-    # prime numbers are greater than 1
-   		if num > 1:
-   			check_prime = True
-   			for i in range(2, num):
-   				if (num % i) == 0:
-   					check_prime = False
-   					break
-
-
-   			if(check_prime):
-   				prime_list.append(num)
-
-	return prime_list 
+		# prime numbers are greater than 1
+		if num > 1:
+			check_prime = True
+			for i in range(2, num):
+				if (num % i) == 0:
+					check_prime = False
+					break
+			if check_prime:
+				prime_list.append(num)
+	return prime_list
 
 
 def is_cand(n, prime_list):
+	"""
+	Checks if n can be factored as a product of all primes in
+	prime_list, and returns the exponent vector
+	:param n: Number to be factored
+	:param prime_list: List of available primes
+	:return: List of exponents in the factorization for each prime in
+		prime_list (0 if n is not a multiple)
+	TODO: Shouldn't there be some sort of indication if n can't be
+		completely factorized?
+	"""
 	exp_list = []
 	for p in prime_list:
 		occur = 0
-		while(n%p == 0):
-			occur = occur+1
+		while n % p == 0:
+			occur = occur + 1
 			n = n/p
 		exp_list.append(occur)
-
 	return exp_list
+
 
 #def select_cand(mat):
 
 
-def gcd(a,b): 
-    if(b==0): 
-        return a 
-    else: 
-        return gcd(b,a%b) 
+def factorize(n, factor_base):
+	"""
+	Factorize n (mod N) into a product of vectors in factor_base.
+
+	This method currently uses trial division.
+
+	:param n: Number to be factorized
+	:param factor_base: List of available prime factors
+	:return: Prime factors of n, with repetition if necessary
+	TODO: Shouldn't there be some sort of indication if n can't be
+		completely factorized?
+	"""
+	N = 63787  # Placeholder (TODO)
+	n = n % N
+	print("function entered")
+	factors = []
+	for p in factor_base:
+		while(n!=0 and n%p == 0):
+			factors.append(p)
+			n =n/p
+	return factors
+
+
+def gcd(a, b):
+	"""
+	Calculate the Greatest Common Divisor.
+	:param a: a
+	:param b: b
+	:return: gcd(a,b)
+	"""
+	if(b==0):
+		return a
+	else:
+		return gcd(b,a%b)
 
 
 def transpose(matrix):
-#transpose matrix so columns become rows, makes list comp easier to work with
-    new_matrix = []
-    for i in range(len(matrix[0])):
-        new_row = []
-        for row in matrix:
-            new_row.append(row[i])
-        new_matrix.append(new_row)
-    return(new_matrix)
+	"""
+	Transpose a matrix so columns become rows, makes list comp easier to
+	work with.
+	:param matrix: Original matrix
+	:return: Transpost of matrix
+	"""
+	return [[row[j] for row in matrix] for j in range(len(matrix[0]))]
+
 
 def build_matrix(smooth_nums,factor_base):
-# generates exponent vectors mod 2 from previously obtained smooth numbers, then builds matrix
-    
-    def factor(n,factor_base):#trial division from factor base
-        N = 63787
-        n = n % N
-        print("function entered")
-        factors = []
+	"""
+	Construct a matrix of exponent vectors (from B-smooth x^2-n) mod 2.
+	:param smooth_nums: List of B-smooth x^2-n's
+	:param factor_base: List of available prime factors
+	:return: - Whether one of the B-smooth numbers is a perfect square
+			   mod n itself
+			 - If first argument is True, the perfect square;
+			   Otherwise, the entire matrix
+	TODO: Pass in exponent vetor as a parameter instead of
+		re-factorizing everything?
+	"""
 
-        for p in factor_base:
-          while(n!=0 and n%p == 0):
-            factors.append(p)
-            n =n/p
-        return factors
+	# generates exponent vectors mod 2 from previously obtained smooth numbers, then builds matrix
+	M = []
+	#factor_base.insert(0,-1)
 
 
-    M = []
-    #factor_base.insert(0,-1)
+	for n in smooth_nums:
+		exp_vector = [0]*(len(factor_base))
+		n_factors = factorize(n,factor_base)
+		print(n,n_factors)
+		for i in range(len(factor_base)):
+			if factor_base[i] in n_factors:
+				exp_vector[i] = (exp_vector[i] + n_factors.count(factor_base[i])) % 2
 
-    print("Making matrix")
-    for n in smooth_nums:
-        print("length of factor base")
-        print(len(factor_base))
-        exp_vector = [0]*(len(factor_base))
-        n_factors = factor(n,factor_base)
-        print(n,n_factors)
-        for i in range(len(factor_base)):
-            if factor_base[i] in n_factors:
-                exp_vector[i] = (exp_vector[i] + n_factors.count(factor_base[i])) % 2
+		#print(n_factors, exp_vector)
+		if 1 not in exp_vector: #search for squares
+			return True, n
+		else:
+			pass
 
-        #print(n_factors, exp_vector)
-        if 1 not in exp_vector: #search for squares
-            return True, n
-        else:
-            pass
-        
-        M.append(exp_vector)
-    #print("Matrix built:")
-    #mprint(M)
-    return(False, transpose(M))
+		M.append(exp_vector)
+
+	#print("Matrix built:")
+	#mprint(M)
+	return(False, transpose(M))
 
 
 def gauss_elim(M):
-    marks = [False]*len(M[0])
-    for i in range(len(M)): #do for all rows
-        row = M[i]
-        #print(row)
-        
-        for num in row: #search for pivot
-            if num == 1:
-                #print("found pivot at column " + str(row.index(num)+1))
-                j = row.index(num) # column index
-                marks[j] = True
-                
-                for k in chain(range(0,i),range(i+1,len(M))): #search for other 1s in the same column
-                    if M[k][j] == 1:
-                        for i in range(len(M[k])):
-                            M[k][i] = (M[k][i] + row[i])%2
-                break
-            
-    print(marks)
-    M = transpose(M)
-    #mprint(M)
-    
-    sol_rows = []
-    for i in range(len(marks)): #find free columns (which have now become rows)
-        if marks[i]== False:
-            free_row = [M[i],i]
-            sol_rows.append(free_row)
-    
-    if not sol_rows:
-        return("No solution found. Need more smooth numbers.")
+	"""
+	Perform Gaussian Elimination to solve Mx=0 (mod 2).
+	(This method only works in Z/2Z.)
 
-    print("Found {} potential solutions".format(len(sol_rows)))
-    return sol_rows,marks,M
+	:param M: Matrix
+	:return:
+	"""
+	marks = [False]*len(M[0])
+	for i in range(len(M)): #do for all rows
+		row = M[i]
+		#print(row)
+
+		for num in row: #search for pivot
+			if num == 1:
+				#print("found pivot at column " + str(row.index(num)+1))
+				j = row.index(num) # column index
+				marks[j] = True
+
+				for k in chain(range(0,i),range(i+1,len(M))): #search for other 1s in the same column
+					if M[k][j] == 1:
+						for i in range(len(M[k])):
+							M[k][i] = (M[k][i] + row[i])%2
+				break
+
+	print(marks)
+	M = transpose(M)
+	#mprint(M)
+
+	sol_rows = []
+	for i in range(len(marks)): #find free columns (which have now become rows)
+		if marks[i]== False:
+			free_row = [M[i],i]
+			sol_rows.append(free_row)
+
+	if not sol_rows:
+		return("No solution found. Need more smooth numbers.")
+
+	print("Found {} potential solutions".format(len(sol_rows)))
+	return sol_rows,marks,M
 
 
 

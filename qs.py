@@ -121,5 +121,24 @@ def sieve(N, B):
 
 	return try_solve()
 
+def opt_bound(N):
+    low = pow(exp(sqrt(log(N)*log(log(N)))),sqrt(2)/4)
+    up = low**3
+    print(low,up)
+    return int(low),int(up)
 
-print(sieve(N, B))
+def sieve_auto(N):
+	B, upper = opt_bound(N)#defin initial Bond
+	B = B*10
+	result = sieve(N, B)
+	while(result==-1 or B>upper):
+		B = B*10
+		result = sieve(N, B)
+
+	if(B>upper):
+		return -1
+		
+	return result
+	
+		
+print(sieve_auto(N))

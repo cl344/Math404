@@ -224,14 +224,13 @@ def find_subset(nums, exp_vecs):
 	Need to convert the exponent vectors to a matrix mod 2, and then
 	use Gaussian Reduction.
 
-	:param nums: List of numbers (of the form x^2-n), given as either
-		x's or x^2-n's (depending on implementation)
+	:param nums: List of numbers (of the form x^2-n), given as x's
 	:param exp_vecs: Exponent vectors of each number (can be either
 		list or dict, depending on implementation)
 	:return: - List of lists (subsets) of chosen numbers, or empty list
 		if solution does not exist
 				e.g. [set1, set2, ...] where set1 = [x1, x2, ...]
-			- List of lists (subsets) of exponent vectors corresponding
+			 - List of lists (subsets) of exponent vectors corresponding
 		to the chosen vectors, or empty list if solution does not exist
 	"""
 	M = build_matrix_from_vecs(exp_vecs)
@@ -245,48 +244,42 @@ def find_subset(nums, exp_vecs):
 	return chosen_nums, chosen_vecs
 
 
-def find_factor(nums, exp_vecs, factor_base):
+def find_factor(N, nums, exp_vecs, factor_base):
 	"""
 	Gien a list of chosen numbers (x^2-n), and their corresponding
 	exponent vectors that SUM UP TO 0 MOD 2, attempt to find a factor
 	of n.
 
 	This is done by:
-	- Compute a, the square root of product of each x^2-n (mod n), by
+	- Compute a, the product of all x's mod n.
+	- Compute b, the square root of product of each x^2-n (mod n), by
 	  summing up all exponent vectors and dividing by 2.
-	- Compute b, the product of all x's mod n.
 	- We now have a^2=b^2 (mod n). Check if a=b (mod n), and if not,
 	  we have a factor gcd(a-b, n).
 
 	This is the final attempt before successfully factorizing n.
 
-	:param nums: List of numbers (of the form x^2-n), given as either
-		x's or x^2-n's (depending on implementation)
+	:param nums: List of numbers (of the form x^2-n), given as x's
 	:param exp_vecs: Exponent vectors of each number (can be either
 		list or dict, depending on implementation)
 	:param factor_base: List of available prime factors
+	:param N: n
 	:return: A factor of n, or -1 if unsuccessful
 	"""
 	# Compute x and y s.t. x^2 = y^2 (mod N) and try getting a factor
 	# TODO: Back out if x = y (mod N)
-	x = 1
+	a = 1
 	for k in nums:
-		x *= k
+		a *= k
 
-	sum_exps = [0] * len(exp_vecs)
+	sum_exps = [0] * len(exp_vecs)  # Sum of all exponent vectors (for product)
 	for v in exp_vecs:
-		# TODO: WIP
+		sum_exps = [x+y for x, y in zip(sum_exps, v)]
+	b = 1
+	for i in range(sum_exps):
+		b *= factor_base[i] ** (sum_exps[i] / 2)
 
-
-	y = 1
-
-	for i in range(len(num)):
-		x = x*num[i]
-		y = y*(B_list[i]**primes[i])
-
-	y = sqrt(y)
-
-	return gcd(x,y)
+	return -1 if (a-b) % N == 0 else gcd(a-b, N)
 
 
 M = [[0,0,0,0,1], [0,1,1,0,0], [1,0,1,1,0],[0,0,0,0,0]]

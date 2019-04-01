@@ -47,7 +47,7 @@ def sieve(N, B):
 	num = []
 	primes = []
 
-	# Accumulate x^2-n's and B-smooth remainders
+	# Accumulate x's and B-smooth remainders (x^2-n)
 	while cand_num < cand_num_target:
 		cand_sqr = (cand**2) % N  # x^2 - n
 		cand_list = is_cand(cand_sqr, B_list)  # Check B-smoothness

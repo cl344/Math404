@@ -4,7 +4,7 @@ from functions import *
 import math
 from math import *
 
-N = 6172835808641975203638304919691358469663  # 63787
+N = 3744843080529615909019181510330554205500926021947  # 63787
 B = 1000
 
 # ------------------- Parameters and Setup --------------------- #
@@ -152,7 +152,7 @@ def sieve_auto(N):
 	start_time = time.time()
 
 	B, upper = opt_bound(N)#defin initial Bond
-	B = B*3  # DEBUG
+	B = B*20  # DEBUG
 	result = sieve(N, B)
 	while(result==-1 or B>upper):
 		B = B*10

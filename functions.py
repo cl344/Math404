@@ -104,10 +104,9 @@ def gcd(a, b):
 	"""
 	if a < b:
 		return gcd(b, a)
-	if b == 0:
-		return a
-	else:
-		return gcd(b, a%b)
+	while b != 0:
+		a, b = b, a % b
+	return a
 
 
 def transpose(matrix):
@@ -205,8 +204,6 @@ def gauss_elim(M):
 	# Find a pivot in all columns, and adjust the other rows accordingly
 	for i in range(len(M)): #do for all rows
 		row = M[i]
-		if i % 100 == 0:
-			print(i)
 		for j in range(len(row)): #search for pivot
 			if row[j] == 1:
 				# Make this a pivot column
@@ -226,7 +223,7 @@ def gauss_elim(M):
 	free_cols = [i for i in range(len(M[0])) if not marks[i]]
 	if not free_cols:
 		return []  # Only has trivial solution: fail
-	print('# of free variables = %d' % len(free_cols))
+	#print('# of free variables = %d' % len(free_cols))
 
 	def find_solution(assignment):
 		"""
@@ -264,8 +261,8 @@ def gauss_elim(M):
 				assignments[j] = random.randint(0, 1)
 		solutions.append(find_solution(assignments))
 
-	print('Solutions to Gaussian:')
-	print(solutions)
+	#print('Solutions to Gaussian:')
+	#print(solutions)
 	return solutions
 
 
@@ -321,30 +318,28 @@ def find_factor(N, nums, exp_vecs, factor_base):
 	:param N: n
 	:return: A factor of n, or -1 if unsuccessful
 	"""
-	# Compute x and y s.t. x^2 = y^2 (mod N) and try getting a factor
-	# TODO: Back out if x = y (mod N)
-	print(nums)
+	#print(nums)
 	a = 1
 	for k in nums:
 		#a *= k
 		a = a * k % N
 
+	#print('All exponent vectors:')
+	#print(exp_vecs)
 	sum_exps = [0] * len(exp_vecs[0])  # Sum of all exponent vectors (for product)
 	for v in exp_vecs:
 		sum_exps = [x+y for x, y in zip(sum_exps, v)]
-	print(sum_exps)
+	#print(sum_exps)
+
 	b = 1
 	for i in range(len(sum_exps)):
-		#b *= pow(factor_base[i], (sum_exps[i] // 2))
-		#b *= factor_base[i] ** (sum_exps[i] // 2)
-		b = b * factor_base[i] ** (sum_exps[i] // 2) % N
-	#b = int(b)
+		b = b * pow(factor_base[i], (sum_exps[i] // 2)) % N
 
-	print(a)
-	print(b)
-	print(a * a % N)
-	print(b * b % N)
-	return -1 if (a - b) % N == 0 and (a + b) % N == 0 else gcd(a - b, N)
+	#print(a)
+	#print(b)
+	#print(a * a % N)
+	#print(b * b % N)
+	return -1 if (a - b) % N == 0 or (a + b) % N == 0 else gcd(a - b + N, N)
 
 
 # M = [[0,0,0,0,1], [0,1,1,0,0], [1,0,1,1,0],[0,0,0,0,0]]

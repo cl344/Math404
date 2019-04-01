@@ -1,8 +1,9 @@
 from functions import *
 import math
+from math import *
 
 N = 16921456439215439701  # 63787
-B = 30000
+B = 1000
 
 # ------------------- Parameters and Setup --------------------- #
 
@@ -51,7 +52,7 @@ def sieve(N, B):
 		"""
 		# Check if there exists subset of exponent vectors that sum to 0
 		chosen_nums_sets, chosen_vecs_sets = find_subset(nums, exp_vecs)
-		print('Finished Gaussian')
+		#print('Finished Gaussian')
 		for i in range(len(chosen_nums_sets)):
 			chosen_nums = chosen_nums_sets[i]  # subset of x's
 			chosen_vecs = chosen_vecs_sets[i]
@@ -71,7 +72,7 @@ def sieve(N, B):
 			continue
 		effective_factor_base.append(p)
 		# Pick the smallest x >= x_start s.t. x == x1 (mod p)
-		for res in [x1, x2]:
+		for res in {x1, x2}:  # CAREFUL! x1=x2 when p=2
 			x = x_start // p * p  # Largest multiple of p that's <= x_start
 			x += res
 			if x < x_start:
@@ -114,7 +115,7 @@ def sieve(N, B):
 		nums.append(x)
 		exp_vecs.append(vec)
 		if len(nums) >= min_nums:
-			print('Found %d B-smooth numbers' % len(nums))
+			#print('Found %d B-smooth numbers' % len(nums))
 			factor = try_solve()
 			if factor != -1:
 				return factor

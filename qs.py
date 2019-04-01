@@ -1,3 +1,5 @@
+import time
+
 from functions import *
 import math
 from math import *
@@ -45,13 +47,22 @@ def sieve(N, B):
 	print('%d primes' % len(factor_base))
 
 	nums = []  # All x's such that x^2-n is B-smooth
-	exp_vecs = []  # Exponent vectors (raw) of each x^2-n
+	#exp_vecs = []  # Exponent vectors (raw) of each x^2-n
+	exp_vec_dicts = []  # Exponent vectors (as dict of p:exp) of each x^2-n
 
 	def try_solve():
 		"""
 		Try to solve for a factor given the current exponent vectors.
 		:return: A factor of N, or -1 if it doesn't exist
 		"""
+		# Convert dicts to exponent vectors
+		exp_vecs = []
+		for d in exp_vec_dicts:
+			v = [0] * len(factor_base)
+			for p, exp in d.items():
+				v[p_to_index[p]] = exp
+			exp_vecs.append(v)
+
 		# Check if there exists subset of exponent vectors that sum to 0
 		chosen_nums_sets, chosen_vecs_sets = find_subset(nums, exp_vecs)
 		#print('Finished Gaussian')
@@ -84,6 +95,7 @@ def sieve(N, B):
 			flags[x].append(p)
 	factor_base = effective_factor_base
 	min_nums = len(factor_base)  # Minimum number of B-smooth numbers required
+
 	p_to_index = {}  # Lookup index of p in factor_base
 	for i in range(len(factor_base)):
 		p_to_index[factor_base[i]] = i
@@ -94,7 +106,7 @@ def sieve(N, B):
 		x_sqr = (x * x) % N  # x^2 - n
 		if x_sqr == 0:
 			return x  # x^2 == 0 (mod n)
-		if x % 100000 == 0:  # DEBUG
+		if x % 1000000 == 0:  # DEBUG
 			print('  x = %d' % x)
 			print('  # of B-smooth numbers found = %d' % len(nums))
 
@@ -102,13 +114,14 @@ def sieve(N, B):
 		if x not in flags and x_sqr != 1:
 			continue
 		x_sqr_remain = x_sqr
-		vec = [0] * len(factor_base)
+		#vec = [0] * len(factor_base)
+		vec_dict = {}
 		for p in flags[x]:
 			exp = 0
 			while x_sqr_remain % p == 0:
 				exp += 1
 				x_sqr_remain = x_sqr_remain // p
-			vec[p_to_index[p]] = exp
+			vec_dict[p] = exp
 			if x + p not in flags:  # Push back flags
 				flags[x + p] = []
 			flags[x + p].append(p)
@@ -116,7 +129,8 @@ def sieve(N, B):
 			continue
 
 		nums.append(x)
-		exp_vecs.append(vec)
+		#exp_vecs.append(vec)
+		exp_vec_dicts.append(vec_dict)
 		if len(nums) >= min_nums:  # DEBUG
 			print('Found %d B-smooth numbers' % len(nums))
 			factor = try_solve()
@@ -132,8 +146,10 @@ def opt_bound(N):
     return int(low)*10,int(up)
 
 def sieve_auto(N):
+	start_time = time.time()
+
 	B, upper = opt_bound(N)#defin initial Bond
-	B = B*10  # DEBUG
+	#B = B*10  # DEBUG
 	result = sieve(N, B)
 	while(result==-1 or B>upper):
 		B = B*10
@@ -141,9 +157,11 @@ def sieve_auto(N):
 
 	if(B>upper):
 		return -1
-		
+
+	end_time = time.time()
+	print('Time taken (in seconds): %.3f' % (end_time - start_time))
 	return result
 	
 		
-print(sieve_auto(N))
+print('A factor of %d is %d' % (N, sieve_auto(N)))
 #print(sieve(N, B))

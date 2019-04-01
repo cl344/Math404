@@ -1,3 +1,4 @@
+import random
 from itertools import chain
 import math
 
@@ -45,7 +46,7 @@ def is_cand(n, factor_base):
 		occur = 0
 		while n % p == 0:
 			occur = occur + 1
-			n = n/p
+			n = n//p
 		exp_list.append(occur)
 	return exp_list if n == 1 else []
 
@@ -69,8 +70,29 @@ def factorize(n, factor_base):
 	for p in factor_base:
 		while(n!=0 and n%p == 0):
 			factors.append(p)
-			n =n/p
+			n =n//p
 	return factors
+
+
+def solve_quad_congruence(n, p):
+	"""
+	Helper method to solve the quadratic congruence x^2 - n = 0 (mod p).
+
+	Since p<=B is small, a simple brute force should be enough for this
+	function, but better algorithms may exist.
+	Useful in sieving below.
+	:param n: n
+	:param p: p
+	:return: Tuple of solutions to x^2 - n = 0 (mod p), or (-1,-1) if none
+		exists
+	"""
+	n %= p
+	if n == 0:
+		return 0, 0  # x = 0 (We just factorized n!!)
+	for x in range(1, p // 2 + 1):  # Check [1, p/2] since -x is a solution
+		if x * x % p == n:
+			return x, p-x
+	return -1, -1
 
 
 def gcd(a, b):
@@ -96,6 +118,23 @@ def transpose(matrix):
 	:return: Transpose of matrix
 	"""
 	return [[row[j] for row in matrix] for j in range(len(matrix[0]))]
+
+
+def pow(x, n):
+	"""
+	Calculate x^n.
+	https://stackoverflow.com/questions/5246856/how-did-python-implement-the-built-in-function-pow
+	:param x: x
+	:param n: n
+	:return: x^n
+	"""
+	p = 1
+	while n:
+		if n % 2:
+			p *= x
+		x *= x
+		n //= 2
+	return p
 
 
 # ----- Gathering numbers and Producing Solution ----- #
@@ -158,6 +197,7 @@ def gauss_elim(M):
 	:param M: Matrix
 	:return: List of all non-zero solutions
 	"""
+	RANDOM_TRIALS = 5  # Random trials to assign free variables a value
 	marks = [False]*len(M[0])  # If a pivot has been constructed in this column
 	pivot_row = [-1] * len(M[0])  # For each pivot column, the corresponding
 									# row for which value is 1
@@ -165,6 +205,8 @@ def gauss_elim(M):
 	# Find a pivot in all columns, and adjust the other rows accordingly
 	for i in range(len(M)): #do for all rows
 		row = M[i]
+		if i % 100 == 0:
+			print(i)
 		for j in range(len(row)): #search for pivot
 			if row[j] == 1:
 				# Make this a pivot column
@@ -175,7 +217,7 @@ def gauss_elim(M):
 				for k in chain(range(0, i), range(i+1, len(M))):
 					if M[k][j] == 1:
 						for l in range(len(M[k])):
-							M[k][l] = (M[k][l] + row[l]) % 2
+							M[k][l] = M[k][l] ^ row[l]  # (M[k][l] + row[l]) % 2
 				break
 
 	# Find all free columns: Each column corresponds to a free variable t,
@@ -184,6 +226,7 @@ def gauss_elim(M):
 	free_cols = [i for i in range(len(M[0])) if not marks[i]]
 	if not free_cols:
 		return []  # Only has trivial solution: fail
+	print('# of free variables = %d' % len(free_cols))
 
 	def find_solution(assignment):
 		"""
@@ -205,15 +248,21 @@ def gauss_elim(M):
 
 	# Search over all assignments of free variables by brute force
 	solutions = []
-	assignments = [0] * (len(free_cols) - 1) + [1]  # Value of each free variable
-	while assignments[0] <= 1:
+	# assignments = [0] * (len(free_cols) - 1) + [1]  # Value of each free variable
+	# while assignments[0] <= 1:
+	# 	solutions.append(find_solution(assignments))
+	# 	assignments[len(assignments) - 1] += 1
+	# 	i = len(assignments) - 1
+	# 	while i > 0 and assignments[i] > 1:
+	# 		assignments[i - 1] += 1
+	# 		assignments[i] -= 2
+	# 		i -= 1
+	for i in range(RANDOM_TRIALS):
+		assignments = [0] * len(free_cols)
+		while assignments == [0] * len(free_cols):
+			for j in range(len(free_cols)):
+				assignments.append(random.randint(0, 1))
 		solutions.append(find_solution(assignments))
-		assignments[len(assignments) - 1] += 1
-		i = len(assignments) - 1
-		while i > 0 and assignments[i] > 1:
-			assignments[i - 1] += 1
-			assignments[i] -= 2
-			i -= 1
 
 	return solutions
 
@@ -281,8 +330,8 @@ def find_factor(N, nums, exp_vecs, factor_base):
 		sum_exps = [x+y for x, y in zip(sum_exps, v)]
 	b = 1
 	for i in range(len(sum_exps)):
-		b *= factor_base[i] ** (sum_exps[i] / 2)
-	b = int(b)
+		b *= pow(factor_base[i], (sum_exps[i] // 2))
+	#b = int(b)
 
 	return -1 if (a - b) % N == 0 else gcd(a - b, N)
 

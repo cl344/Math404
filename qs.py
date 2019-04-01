@@ -1,8 +1,8 @@
 from functions import *
 import math
 
-N = 16921456439215439701
-B = 100000
+N = 16921456439215439701  # 63787
+B = 30000
 
 # ------------------- Parameters and Setup --------------------- #
 
@@ -40,7 +40,6 @@ def sieve(N, B):
 	x_upper_bound = 2 * x_start  # Stop the search when we reach this x (TODO)
 
 	factor_base = get_prime(B)  # All primes up to B
-	min_nums = len(factor_base)  # Minimum number of B-smooth numbers required
 
 	nums = []  # All x's such that x^2-n is B-smooth
 	exp_vecs = []  # Exponent vectors (raw) of each x^2-n
@@ -52,6 +51,7 @@ def sieve(N, B):
 		"""
 		# Check if there exists subset of exponent vectors that sum to 0
 		chosen_nums_sets, chosen_vecs_sets = find_subset(nums, exp_vecs)
+		print('Finished Gaussian')
 		for i in range(len(chosen_nums_sets)):
 			chosen_nums = chosen_nums_sets[i]  # subset of x's
 			chosen_vecs = chosen_vecs_sets[i]
@@ -60,15 +60,61 @@ def sieve(N, B):
 				return factor
 		return -1
 
+	flags = {}  # crossed out number: [list of primes that crosses it out]
+	# Pick initial numbers to cross out for each p
+	effective_factor_base = []
+	for p in factor_base:
+		x1, x2 = solve_quad_congruence(N, p)
+		if x1 == 0:
+			return p  # n == 0 (mod p)
+		if x1 == -1:
+			continue
+		effective_factor_base.append(p)
+		# Pick the smallest x >= x_start s.t. x == x1 (mod p)
+		for res in [x1, x2]:
+			x = x_start // p * p  # Largest multiple of p that's <= x_start
+			x += res
+			if x < x_start:
+				x += p
+			if x not in flags:
+				flags[x] = []
+			flags[x].append(p)
+	factor_base = effective_factor_base
+	min_nums = len(factor_base)  # Minimum number of B-smooth numbers required
+	p_to_index = {}  # Lookup index of p in factor_base
+	for i in range(len(factor_base)):
+		p_to_index[factor_base[i]] = i
+
 	# Accumulate x's and B-smooth remainders (x^2-n)
 	for x in range(x_start, x_upper_bound + 1):
-		x_sqr = (x ** 2) % N  # x^2 - n
-		vec = is_cand(x_sqr, factor_base)
-		if not vec:  # Check B-smoothness
+		x_sqr = (x * x) % N  # x^2 - n
+		if x_sqr == 0:
+			return x  # x^2 == 0 (mod n)
+		#if x % 1000 == 0:  # DEBUG
+		#	print(x)
+		#	print(len(nums))
+
+		# Check B-smoothness by taking the crossed out p's and divide x
+		if x not in flags and x_sqr != 1:
 			continue
+		x_sqr_remain = x_sqr
+		vec = [0] * len(factor_base)
+		for p in flags[x]:
+			exp = 0
+			while x_sqr_remain % p == 0:
+				exp += 1
+				x_sqr_remain = x_sqr_remain // p
+			vec[p_to_index[p]] = exp
+			if x + p not in flags:  # Push back flags
+				flags[x + p] = []
+			flags[x + p].append(p)
+		if x_sqr_remain != 1:  # Not B-smooth
+			continue
+
 		nums.append(x)
 		exp_vecs.append(vec)
 		if len(nums) >= min_nums:
+			print('Found %d B-smooth numbers' % len(nums))
 			factor = try_solve()
 			if factor != -1:
 				return factor

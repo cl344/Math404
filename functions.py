@@ -25,28 +25,24 @@ def get_prime(B):
 	return prime_list
 
 
-def is_cand(n, prime_list):
+def is_cand(n, factor_base):
 	"""
 	Checks if n can be factored as a product of all primes in
-	prime_list, and returns the exponent vector
+	prime_list (i.e. B-smooth), and returns the exponent vector.
 	:param n: Number to be factored
-	:param prime_list: List of available primes
+	:param factor_base: List of available primes
 	:return: List of exponents in the factorization for each prime in
-		prime_list (0 if n is not a multiple)
-	TODO: Shouldn't there be some sort of indication if n can't be
-		completely factorized?
+		prime_list (0 if n is not a multiple of p)
+			If n is not a product of primes in factor_base, return []
 	"""
 	exp_list = []
-	for p in prime_list:
+	for p in factor_base:
 		occur = 0
 		while n % p == 0:
 			occur = occur + 1
 			n = n/p
 		exp_list.append(occur)
-	return exp_list
-
-
-#def select_cand(mat):
+	return exp_list if n == 1 else []
 
 
 def factorize(n, factor_base):
@@ -246,7 +242,7 @@ def find_subset(nums, exp_vecs):
 
 def find_factor(N, nums, exp_vecs, factor_base):
 	"""
-	Gien a list of chosen numbers (x^2-n), and their corresponding
+	Given a list of chosen numbers (x^2-n), and their corresponding
 	exponent vectors that SUM UP TO 0 MOD 2, attempt to find a factor
 	of n.
 
@@ -276,29 +272,29 @@ def find_factor(N, nums, exp_vecs, factor_base):
 	for v in exp_vecs:
 		sum_exps = [x+y for x, y in zip(sum_exps, v)]
 	b = 1
-	for i in range(sum_exps):
+	for i in range(len(sum_exps)):
 		b *= factor_base[i] ** (sum_exps[i] / 2)
 
-	return -1 if (a-b) % N == 0 else gcd(a-b, N)
+	return -1 if (a - b) % N == 0 else gcd(a - b, N)
 
 
-M = [[0,0,0,0,1], [0,1,1,0,0], [1,0,1,1,0],[0,0,0,0,0]]
-print(build_matrix_from_vecs([], M))
-print(M)
-print(gauss_elim(M))
+# M = [[0,0,0,0,1], [0,1,1,0,0], [1,0,1,1,0],[0,0,0,0,0]]
+# print(build_matrix_from_vecs([], M))
+# print(M)
+# print(gauss_elim(M))
 
 
-N = 63787
+# N = 63787
 # print(get_prime(19))
 # print(is_cand((439**2)%N,get_prime(19)))
 # print(gcd(25,85))
 
 
-smooth_nums = [439**2, 441**2, 444**2, 445**2, 447**2, 449**2]
-factor_base = [2,3,5,7,11,13,17]
+# smooth_nums = [439**2, 441**2, 444**2, 445**2, 447**2, 449**2]
+# factor_base = [2,3,5,7,11,13,17]
 
-is_sqr, M = build_matrix(smooth_nums, factor_base)
-print(M)
+# is_sqr, M = build_matrix(smooth_nums, factor_base)
+# print(M)
 # print([False]*len(M[0]))
 # sol_rows,marks,matrix = gauss_elim(M)
 # #print(sol_rows)

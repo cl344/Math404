@@ -1,9 +1,10 @@
 from functions import *
+import math
 
 N = 63787
 B = 19
 
-B_list = get_prime(B)  # List of primes
+# B_list = get_prime(B)  # List of primes
 
 # ------------------- Parameters and Setup --------------------- #
 
@@ -39,40 +40,32 @@ def sieve(N, B):
 	:param B: Bound B for small primes
 	:return: A factor of N, or -1 if there are none (Need to increase B)
 	"""
-	# Placeholder variables (TODO)
-	cand_num_target = 7  # Number of x^2-n candidates required
-	cand_num = 0  # Number of x^2-n candidates found
-	cand = B+1  # Current x
+	x_start = math.ceil(math.sqrt(N))
+	x_upper_bound = 2 * x_start  # Stop the search when we reach this x (TODO)
 
-	num = []
-	primes = []
+	factor_base = get_prime(B)  # All primes up to B
+	min_nums = len(factor_base)  # Minimum number of B-smooth numbers required
+
+	nums = []  # All x's such that x^2-n is B-smooth
+	exp_vecs = []  # Exponent vectors (raw) of each x^2-n
 
 	# Accumulate x's and B-smooth remainders (x^2-n)
-	while cand_num < cand_num_target:
-		cand_sqr = (cand**2) % N  # x^2 - n
-		cand_list = is_cand(cand_sqr, B_list)  # Check B-smoothness
-		if cand_list:
-			cand_num = cand_num + 1
-			num.append(cand)
-			primes.append(cand_list)
-		cand = cand + 1
-
-	# Choose a subset of x^2-n's whose product is also a square mod n
-	# (i.e. exponent vectors sum up to 0 mod 2)
-	select_list = select_cand(num, primes)
-
-	# Compute x and y s.t. x^2 = y^2 (mod N) and try getting a factor
-	# TODO: Back out if x = y (mod N)
-	x = 1
-	y = 1
-
-	for i in range(len(num)):
-		x = x*num[i]
-		y = y*(B_list[i]**primes[i])
-
-	y = sqrt(y)
-
-	return gcd(x,y)
+	for x in range(x_start, x_upper_bound + 1):
+		x_sqr = (x ** 2) % N  # x^2 - n
+		vec = is_cand(x_sqr, factor_base)
+		if not vec:  # Check B-smoothness
+			continue
+		nums.append(x)
+		exp_vecs.append(vec)
+		if len(nums) >= min_nums:
+			# Check if there exists subset of exponent vectors that sum to 0
+			chosen_nums_sets, chosen_vecs_sets = find_subset(nums, exp_vecs)
+			for i in range(len(chosen_nums_sets)):
+				chosen_nums = chosen_nums_sets[i]  # subset of x's
+				chosen_vecs = chosen_vecs_sets[i]
+				factor = find_factor(N, chosen_nums, chosen_vecs, factor_base)
+				if factor != -1:
+					return factor
 
 
 print(sieve(N, B))

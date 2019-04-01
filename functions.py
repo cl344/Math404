@@ -230,6 +230,7 @@ def find_subset(nums, exp_vecs):
 		to the chosen vectors, or empty list if solution does not exist
 	"""
 	M = build_matrix_from_vecs(exp_vecs)
+	M = transpose(M)
 	sols = gauss_elim(M)
 	chosen_nums = []
 	chosen_vecs = []
@@ -268,7 +269,7 @@ def find_factor(N, nums, exp_vecs, factor_base):
 	for k in nums:
 		a *= k
 
-	sum_exps = [0] * len(exp_vecs)  # Sum of all exponent vectors (for product)
+	sum_exps = [0] * len(exp_vecs[0])  # Sum of all exponent vectors (for product)
 	for v in exp_vecs:
 		sum_exps = [x+y for x, y in zip(sum_exps, v)]
 	b = 1

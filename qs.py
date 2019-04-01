@@ -67,5 +67,7 @@ def sieve(N, B):
 				if factor != -1:
 					return factor
 
+	return -1
+
 
 print(sieve(N, B))

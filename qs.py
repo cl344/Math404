@@ -1,10 +1,8 @@
 from functions import *
 import math
 
-N = 63787
-B = 19
-
-# B_list = get_prime(B)  # List of primes
+N = 16921456439215439701
+B = 100000
 
 # ------------------- Parameters and Setup --------------------- #
 
@@ -28,9 +26,7 @@ def get_B(n):
 	"""
 	return 19  # TODO
 
-
 # ------------------- Sieving --------------------- #
-
 
 def sieve(N, B):
 	"""
@@ -49,6 +45,21 @@ def sieve(N, B):
 	nums = []  # All x's such that x^2-n is B-smooth
 	exp_vecs = []  # Exponent vectors (raw) of each x^2-n
 
+	def try_solve():
+		"""
+		Try to solve for a factor given the current exponent vectors.
+		:return: A factor of N, or -1 if it doesn't exist
+		"""
+		# Check if there exists subset of exponent vectors that sum to 0
+		chosen_nums_sets, chosen_vecs_sets = find_subset(nums, exp_vecs)
+		for i in range(len(chosen_nums_sets)):
+			chosen_nums = chosen_nums_sets[i]  # subset of x's
+			chosen_vecs = chosen_vecs_sets[i]
+			factor = find_factor(N, chosen_nums, chosen_vecs, factor_base)
+			if factor != -1:
+				return factor
+		return -1
+
 	# Accumulate x's and B-smooth remainders (x^2-n)
 	for x in range(x_start, x_upper_bound + 1):
 		x_sqr = (x ** 2) % N  # x^2 - n
@@ -58,16 +69,11 @@ def sieve(N, B):
 		nums.append(x)
 		exp_vecs.append(vec)
 		if len(nums) >= min_nums:
-			# Check if there exists subset of exponent vectors that sum to 0
-			chosen_nums_sets, chosen_vecs_sets = find_subset(nums, exp_vecs)
-			for i in range(len(chosen_nums_sets)):
-				chosen_nums = chosen_nums_sets[i]  # subset of x's
-				chosen_vecs = chosen_vecs_sets[i]
-				factor = find_factor(N, chosen_nums, chosen_vecs, factor_base)
-				if factor != -1:
-					return factor
+			factor = try_solve()
+			if factor != -1:
+				return factor
 
-	return -1
+	return try_solve()
 
 
 print(sieve(N, B))

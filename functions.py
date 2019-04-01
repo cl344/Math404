@@ -1,7 +1,5 @@
-from math import fabs, ceil, sqrt, exp, log
-import random
 from itertools import chain
-
+import math
 
 def get_prime(B):
 	"""
@@ -10,19 +8,26 @@ def get_prime(B):
 	:param B: Bound for primes
 	:return: List of all primes in [2,B]
 	"""
-	# TODO (Optional): Improve efficiency using sieving idea (??)
-	prime_list = []
-	for num in range(B+1):
-		# prime numbers are greater than 1
-		if num > 1:
-			check_prime = True
-			for i in range(2, num):
-				if (num % i) == 0:
-					check_prime = False
-					break
-			if check_prime:
-				prime_list.append(num)
-	return prime_list
+	# Use the same "delayed crossing" idea:
+	#	- Initialize a list with all numbers
+	#	- Examine each number x one by one:
+	#		- If it's not crossed out, it's prime, leave a flag "x" on 2x
+	#		- If it's crossed out, take all flags f and push the flax x to x+f
+	nums = list(range(2, B+1))
+	primes = []
+	flags = {}  # crossed out number: [list of primes that crosses it out]
+	for x in nums:
+		if x not in flags.keys():
+			primes.append(x)
+			if x + x not in flags:
+				flags[x + x] = []
+			flags[x + x].append(x)
+		else:
+			for f in flags[x]:
+				if x + f not in flags:
+					flags[x + f] = []
+				flags[x + f].append(f)
+	return primes
 
 
 def is_cand(n, factor_base):
@@ -75,10 +80,12 @@ def gcd(a, b):
 	:param b: b
 	:return: gcd(a,b)
 	"""
-	if(b==0):
+	if a <= b:
+		return gcd(b, a)
+	if b == 0:
 		return a
 	else:
-		return gcd(b,a%b)
+		return gcd(b, a%b)
 
 
 def transpose(matrix):
@@ -86,7 +93,7 @@ def transpose(matrix):
 	Transpose a matrix so columns become rows, makes list comp easier to
 	work with.
 	:param matrix: Original matrix
-	:return: Transpost of matrix
+	:return: Transpose of matrix
 	"""
 	return [[row[j] for row in matrix] for j in range(len(matrix[0]))]
 
@@ -275,6 +282,7 @@ def find_factor(N, nums, exp_vecs, factor_base):
 	b = 1
 	for i in range(len(sum_exps)):
 		b *= factor_base[i] ** (sum_exps[i] / 2)
+	b = int(b)
 
 	return -1 if (a - b) % N == 0 else gcd(a - b, N)
 

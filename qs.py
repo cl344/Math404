@@ -2,7 +2,7 @@ from functions import *
 import math
 from math import *
 
-N = 16921456439215439701  # 63787
+N = 6172835808641975203638304919691358469663  # 63787
 B = 1000
 
 # ------------------- Parameters and Setup --------------------- #
@@ -37,10 +37,12 @@ def sieve(N, B):
 	:param B: Bound B for small primes
 	:return: A factor of N, or -1 if there are none (Need to increase B)
 	"""
+	print('B = %d' % B)
 	x_start = math.ceil(math.sqrt(N))
-	x_upper_bound = 2 * x_start  # Stop the search when we reach this x (TODO)
+	x_upper_bound = int(x_start * 1.01) # 2 * x_start  # Stop the search when we reach this x (TODO)
 
 	factor_base = get_prime(B)  # All primes up to B
+	print('%d primes' % len(factor_base))
 
 	nums = []  # All x's such that x^2-n is B-smooth
 	exp_vecs = []  # Exponent vectors (raw) of each x^2-n
@@ -85,15 +87,16 @@ def sieve(N, B):
 	p_to_index = {}  # Lookup index of p in factor_base
 	for i in range(len(factor_base)):
 		p_to_index[factor_base[i]] = i
+	print('%d useful primes' % len(factor_base))
 
 	# Accumulate x's and B-smooth remainders (x^2-n)
 	for x in range(x_start, x_upper_bound + 1):
 		x_sqr = (x * x) % N  # x^2 - n
 		if x_sqr == 0:
 			return x  # x^2 == 0 (mod n)
-		#if x % 1000 == 0:  # DEBUG
-		#	print(x)
-		#	print(len(nums))
+		if x % 100000 == 0:  # DEBUG
+			print('  x = %d' % x)
+			print('  # of B-smooth numbers found = %d' % len(nums))
 
 		# Check B-smoothness by taking the crossed out p's and divide x
 		if x not in flags and x_sqr != 1:
@@ -114,8 +117,8 @@ def sieve(N, B):
 
 		nums.append(x)
 		exp_vecs.append(vec)
-		if len(nums) >= min_nums:
-			#print('Found %d B-smooth numbers' % len(nums))
+		if len(nums) >= min_nums:  # DEBUG
+			print('Found %d B-smooth numbers' % len(nums))
 			factor = try_solve()
 			if factor != -1:
 				return factor
@@ -126,11 +129,11 @@ def opt_bound(N):
     low = pow(exp(sqrt(log(N)*log(log(N)))),sqrt(2)/4)
     up = low**3
     print(low,up)
-    return int(low),int(up)
+    return int(low)*10,int(up)
 
 def sieve_auto(N):
 	B, upper = opt_bound(N)#defin initial Bond
-	B = B*10
+	B = B*10  # DEBUG
 	result = sieve(N, B)
 	while(result==-1 or B>upper):
 		B = B*10

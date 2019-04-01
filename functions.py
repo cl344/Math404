@@ -74,27 +74,6 @@ def factorize(n, factor_base):
 	return factors
 
 
-def solve_quad_congruence(n, p):
-	"""
-	Helper method to solve the quadratic congruence x^2 - n = 0 (mod p).
-
-	Since p<=B is small, a simple brute force should be enough for this
-	function, but better algorithms may exist.
-	Useful in sieving below.
-	:param n: n
-	:param p: p
-	:return: Tuple of solutions to x^2 - n = 0 (mod p), or (-1,-1) if none
-		exists
-	"""
-	n %= p
-	if n == 0:
-		return 0, 0  # x = 0 (We just factorized n!!)
-	for x in range(1, p // 2 + 1):  # Check [1, p/2] since -x is a solution
-		if x * x % p == n:
-			return x, p-x
-	return -1, -1
-
-
 def gcd(a, b):
 	"""
 	Calculate the Greatest Common Divisor.
@@ -127,13 +106,132 @@ def pow(x, n):
 	:param n: n
 	:return: x^n
 	"""
-	p = 1
+	ans = 1
 	while n:
 		if n % 2:
-			p *= x
+			ans *= x
 		x *= x
 		n //= 2
-	return p
+	return ans
+
+
+def pow_mod(x, n, p):
+	"""
+	Calculate x^n mod p.
+	https://stackoverflow.com/questions/5246856/how-did-python-implement-the-built-in-function-pow
+	:param x: x
+	:param n: n
+	:param p: p
+	:return: x^n mod p
+	"""
+	ans = 1
+	while n:
+		if n % 2:
+			ans = ans * x % p
+		x = x * x % p
+		n //= 2
+	return ans
+
+
+def solve_quad_congruence_brute(n, p):
+	"""
+	Helper method to solve the quadratic congruence x^2 - n = 0 (mod p).
+
+	Since p<=B is small, a simple brute force should be enough for this
+	function, but better algorithms may exist.
+	Useful in sieving below.
+	:param n: n
+	:param p: p
+	:return: Tuple of solutions to x^2 - n = 0 (mod p), or (-1,-1) if none
+		exists
+	"""
+	n %= p
+	if n == 0:
+		return 0, 0  # x = 0 (We just factorized n!!)
+	for x in range(1, p // 2 + 1):  # Check [1, p/2] since -x is a solution
+		if x * x % p == n:
+			return x, p-x
+	return -1, -1
+
+
+def solve_quad_congruence(n, p):
+	"""
+	Helper method to solve the quadratic congruence x^2 - n = 0 (mod p),
+	using the Tonelli–Shanks algorithm.
+
+	https://en.wikipedia.org/wiki/Tonelli–Shanks_algorithm
+	https://rosettacode.org/wiki/Tonelli-Shanks_algorithm
+
+	Useful in sieving below.
+	:param n: n
+	:param p: p
+	:return: Tuple of solutions to x^2 - n = 0 (mod p), or (-1,-1) if none
+		exists
+	"""
+	n %= p
+	if n == 0:
+		return 0, 0  # x = 0 (We just factorized n!!)
+	if p == 2:
+		return 1, 1
+
+	# First, check n is indeed a square
+	# i.e. n^((p-1)/2) = 1 (mod p)
+	if pow_mod(n, (p-1) // 2, p) != 1:
+		return -1, -1
+
+	# find Q and S such that p − 1 = Q*2^S with Q odd
+	Q = p - 1
+	S = 0
+	while not Q % 2:
+		Q //= 2
+		S += 1
+	if S == 1:
+		# p = 3 (mod 4), use formula for solutions
+		r = pow_mod(n, (p+1) // 4, p)
+		return r, p-r
+
+	# Search for z which is a quadratic non-residue
+	z = 0
+	for z_cand in range(2, p):
+		if pow_mod(z_cand, (p-1) // 2, p) == p - 1:
+			z = z_cand
+			break
+	if z == 0:  # Unknown error
+		return -1, -1
+
+	# Set variables
+	M = S
+	c = pow_mod(z, Q, p)
+	t = pow_mod(n, Q, p)
+	R = pow_mod(n, (Q+1) // 2, p)
+
+	# Loop
+	while True:
+		if t == 0:  # n == 0 (mod p)
+			return 0, 0
+		if t == 1:
+			return R, p-R
+		i = 0
+		t_pow = t
+		while t_pow != 1 and i < M:
+			t_pow = t_pow * t_pow % p
+			i += 1
+		if i == M:
+			return -1, -1
+		b = c  # b = c^(2^(M-i-1))
+		for j in range(M-i-1):
+			b = b * b % p
+		M = i
+		c = b * b % p
+		t = t * b * b % p
+		R = R * b % p
+
+	# Unreachable, but just in case
+	for x in range(1, p // 2 + 1):  # Check [1, p/2] since -x is a solution
+		if x * x % p == n:
+			return x, p-x
+
+	return -1, -1
 
 
 # ----- Gathering numbers and Producing Solution ----- #
@@ -196,7 +294,7 @@ def gauss_elim(M):
 	:param M: Matrix
 	:return: List of all non-zero solutions
 	"""
-	RANDOM_TRIALS = 20  # Random trials to assign free variables a value
+	RANDOM_TRIALS = 5  # Random trials to assign free variables a value
 	marks = [False]*len(M[0])  # If a pivot has been constructed in this column
 	pivot_row = [-1] * len(M[0])  # For each pivot column, the corresponding
 									# row for which value is 1

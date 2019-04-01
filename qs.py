@@ -152,7 +152,7 @@ def sieve_auto(N):
 	start_time = time.time()
 
 	B, upper = opt_bound(N)#defin initial Bond
-	#B = B*10  # DEBUG
+	B = B*3  # DEBUG
 	result = sieve(N, B)
 	while(result==-1 or B>upper):
 		B = B*10

@@ -85,9 +85,14 @@ def sieve_auto(N):
 	B, upper = opt_bound(N)#defin initial Bond
 	B = B*10
 	result = sieve(N, B)
-	while(result==-1):
+	while(result==-1 or B>upper):
 		B = B*10
 		result = sieve(N, B)
+
+	if(B>upper):
+		return -1
+		
+	return result
 	
 		
 print(sieve_auto(N))

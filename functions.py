@@ -102,7 +102,7 @@ def gcd(a, b):
 	:param b: b
 	:return: gcd(a,b)
 	"""
-	if a <= b:
+	if a < b:
 		return gcd(b, a)
 	if b == 0:
 		return a
@@ -197,7 +197,7 @@ def gauss_elim(M):
 	:param M: Matrix
 	:return: List of all non-zero solutions
 	"""
-	RANDOM_TRIALS = 5  # Random trials to assign free variables a value
+	RANDOM_TRIALS = 20  # Random trials to assign free variables a value
 	marks = [False]*len(M[0])  # If a pivot has been constructed in this column
 	pivot_row = [-1] * len(M[0])  # For each pivot column, the corresponding
 									# row for which value is 1
@@ -261,9 +261,11 @@ def gauss_elim(M):
 		assignments = [0] * len(free_cols)
 		while assignments == [0] * len(free_cols):
 			for j in range(len(free_cols)):
-				assignments.append(random.randint(0, 1))
+				assignments[j] = random.randint(0, 1)
 		solutions.append(find_solution(assignments))
 
+	print('Solutions to Gaussian:')
+	print(solutions)
 	return solutions
 
 
@@ -321,19 +323,28 @@ def find_factor(N, nums, exp_vecs, factor_base):
 	"""
 	# Compute x and y s.t. x^2 = y^2 (mod N) and try getting a factor
 	# TODO: Back out if x = y (mod N)
+	print(nums)
 	a = 1
 	for k in nums:
-		a *= k
+		#a *= k
+		a = a * k % N
 
 	sum_exps = [0] * len(exp_vecs[0])  # Sum of all exponent vectors (for product)
 	for v in exp_vecs:
 		sum_exps = [x+y for x, y in zip(sum_exps, v)]
+	print(sum_exps)
 	b = 1
 	for i in range(len(sum_exps)):
-		b *= pow(factor_base[i], (sum_exps[i] // 2))
+		#b *= pow(factor_base[i], (sum_exps[i] // 2))
+		#b *= factor_base[i] ** (sum_exps[i] // 2)
+		b = b * factor_base[i] ** (sum_exps[i] // 2) % N
 	#b = int(b)
 
-	return -1 if (a - b) % N == 0 else gcd(a - b, N)
+	print(a)
+	print(b)
+	print(a * a % N)
+	print(b * b % N)
+	return -1 if (a - b) % N == 0 and (a + b) % N == 0 else gcd(a - b, N)
 
 
 # M = [[0,0,0,0,1], [0,1,1,0,0], [1,0,1,1,0],[0,0,0,0,0]]

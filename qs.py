@@ -142,3 +142,4 @@ def sieve_auto(N):
 	
 		
 print(sieve_auto(N))
+#print(sieve(N, B))

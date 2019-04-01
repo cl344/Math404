@@ -95,7 +95,10 @@ def transpose(matrix):
 	return [[row[j] for row in matrix] for j in range(len(matrix[0]))]
 
 
-def build_matrix(smooth_nums,factor_base):
+# ----- Gathering numbers and Producing Solution ----- #
+
+
+def build_matrix(smooth_nums, factor_base):
 	"""
 	Construct a matrix of exponent vectors (from B-smooth x^2-n) mod 2.
 	:param smooth_nums: List of B-smooth x^2-n's
@@ -132,6 +135,16 @@ def build_matrix(smooth_nums,factor_base):
 	#print("Matrix built:")
 	#mprint(M)
 	return(False, transpose(M))
+
+
+def build_matrix_from_vecs(exp_vecs):
+	"""
+	Construct a matrix of exponent vectors (from B-smooth x^2-n) mod 2,
+	with the raw exponent vectors provided.
+	:param exp_vecs: Exponent vectors of each number as list
+	:return: Matrix with rows as exponent vectors mod 2
+	"""
+	return [[i % 2 for i in v] for v in exp_vecs]
 
 
 def gauss_elim(M):
@@ -202,7 +215,82 @@ def gauss_elim(M):
 	return solutions
 
 
+def find_subset(nums, exp_vecs):
+	"""
+	Given a list of numbers (x^2-n) and their corresponding exponent
+	vectors, find all possible subsets of them whose exponent vectors
+	sum up to 0 mod 2.
+
+	Need to convert the exponent vectors to a matrix mod 2, and then
+	use Gaussian Reduction.
+
+	:param nums: List of numbers (of the form x^2-n), given as either
+		x's or x^2-n's (depending on implementation)
+	:param exp_vecs: Exponent vectors of each number (can be either
+		list or dict, depending on implementation)
+	:return: - List of lists (subsets) of chosen numbers, or empty list
+		if solution does not exist
+				e.g. [set1, set2, ...] where set1 = [x1, x2, ...]
+			- List of lists (subsets) of exponent vectors corresponding
+		to the chosen vectors, or empty list if solution does not exist
+	"""
+	M = build_matrix_from_vecs(exp_vecs)
+	sols = gauss_elim(M)
+	chosen_nums = []
+	chosen_vecs = []
+	for sol in sols:
+		chosen_nums.append([nums[i] for i in range(len(sol)) if sol[i] == 1])
+		chosen_vecs.append(
+			[exp_vecs[i] for i in range(len(sol)) if sol[i] == 1])
+	return chosen_nums, chosen_vecs
+
+
+def find_factor(nums, exp_vecs, factor_base):
+	"""
+	Gien a list of chosen numbers (x^2-n), and their corresponding
+	exponent vectors that SUM UP TO 0 MOD 2, attempt to find a factor
+	of n.
+
+	This is done by:
+	- Compute a, the square root of product of each x^2-n (mod n), by
+	  summing up all exponent vectors and dividing by 2.
+	- Compute b, the product of all x's mod n.
+	- We now have a^2=b^2 (mod n). Check if a=b (mod n), and if not,
+	  we have a factor gcd(a-b, n).
+
+	This is the final attempt before successfully factorizing n.
+
+	:param nums: List of numbers (of the form x^2-n), given as either
+		x's or x^2-n's (depending on implementation)
+	:param exp_vecs: Exponent vectors of each number (can be either
+		list or dict, depending on implementation)
+	:param factor_base: List of available prime factors
+	:return: A factor of n, or -1 if unsuccessful
+	"""
+	# Compute x and y s.t. x^2 = y^2 (mod N) and try getting a factor
+	# TODO: Back out if x = y (mod N)
+	x = 1
+	for k in nums:
+		x *= k
+
+	sum_exps = [0] * len(exp_vecs)
+	for v in exp_vecs:
+		# TODO: WIP
+
+
+	y = 1
+
+	for i in range(len(num)):
+		x = x*num[i]
+		y = y*(B_list[i]**primes[i])
+
+	y = sqrt(y)
+
+	return gcd(x,y)
+
+
 M = [[0,0,0,0,1], [0,1,1,0,0], [1,0,1,1,0],[0,0,0,0,0]]
+print(build_matrix_from_vecs([], M))
 print(M)
 print(gauss_elim(M))
 

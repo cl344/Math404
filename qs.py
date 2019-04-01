@@ -5,6 +5,31 @@ B = 19
 
 B_list = get_prime(B)  # List of primes
 
+# ------------------- Parameters and Setup --------------------- #
+
+def get_B(n):
+	"""
+	Obtain parameter B, the upper bound for small prime numbers to use
+	in the quadratic sieve.
+
+	From the paper, this should involve the following steps:
+	- Choose parameter epsilon
+	- Calculate bound X (and u?? Need to check paper regarding u)
+	- Calculate bound B
+
+	I imagine this part will be done first by trial and error, since
+	we don't know what's a good way to pick epsilon. But as we actually
+	finish up and run the code, we can do trial and error to pick the
+	best epsilon that gives us the shortest runtime.
+
+	:param n: Input integer
+	:return: Bound B
+	"""
+	return 19  # TODO
+
+
+# ------------------- Sieving --------------------- #
+
 
 def sieve(N, B):
 	"""

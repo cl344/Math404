@@ -102,8 +102,10 @@ def sieve(N, B):
 	print('%d useful primes' % len(factor_base))
 
 	# Accumulate x's and B-smooth remainders (x^2-n)
+	x_sqr = (x_start - 1) ** 2 % N
 	for x in range(x_start, x_upper_bound + 1):
-		x_sqr = (x * x) % N  # x^2 - n
+		# x_sqr = (x * x) % N  # x^2 - n
+		x_sqr = (x_sqr + 2 * x - 1) % N  # x^2 = (x-1)^2 + 2x - 1
 		if x_sqr == 0:
 			return x  # x^2 == 0 (mod n)
 		if x % 1000000 == 0:  # DEBUG
@@ -125,6 +127,7 @@ def sieve(N, B):
 			if x + p not in flags:  # Push back flags
 				flags[x + p] = []
 			flags[x + p].append(p)
+		del flags[x]
 		if x_sqr_remain != 1:  # Not B-smooth
 			continue
 

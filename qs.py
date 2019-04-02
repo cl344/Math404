@@ -108,7 +108,8 @@ def sieve(N, B):
 		x_sqr = (x_sqr + 2 * x - 1) % N  # x^2 = (x-1)^2 + 2x - 1
 		if x_sqr == 0:
 			return x  # x^2 == 0 (mod n)
-		if x % 1000000 == 0:  # DEBUG
+		#if x % 1000000 == 0:  # DEBUG
+		if x % 10000000 == 0:  # DEBUG (for 50-digit)
 			print('  x = %d' % x)
 			print('  # of B-smooth numbers found = %d' % len(nums))
 

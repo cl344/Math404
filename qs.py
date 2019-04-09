@@ -169,5 +169,7 @@ def sieve_auto(N):
 	return result
 	
 		
-print('A factor of %d is %d' % (N, sieve_auto(N)))
+factor_q = sieve_auto(N)
+factor_p = N/factor_q
+print('factors of %d are %d and %d' % (N, factor_q, factor_p))
 #print(sieve(N, B))

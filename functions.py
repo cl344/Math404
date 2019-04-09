@@ -1,6 +1,6 @@
 import random
 from itertools import chain
-import math
+
 
 def get_prime(B):
 	"""
@@ -29,49 +29,6 @@ def get_prime(B):
 					flags[x + f] = []
 				flags[x + f].append(f)
 	return primes
-
-
-def is_cand(n, factor_base):
-	"""
-	Checks if n can be factored as a product of all primes in
-	prime_list (i.e. B-smooth), and returns the exponent vector.
-	:param n: Number to be factored
-	:param factor_base: List of available primes
-	:return: List of exponents in the factorization for each prime in
-		prime_list (0 if n is not a multiple of p)
-			If n is not a product of primes in factor_base, return []
-	"""
-	exp_list = []
-	for p in factor_base:
-		occur = 0
-		while n % p == 0:
-			occur = occur + 1
-			n = n//p
-		exp_list.append(occur)
-	return exp_list if n == 1 else []
-
-
-def factorize(n, factor_base):
-	"""
-	Factorize n (mod N) into a product of vectors in factor_base.
-
-	This method currently uses trial division.
-
-	:param n: Number to be factorized
-	:param factor_base: List of available prime factors
-	:return: Prime factors of n, with repetition if necessary
-	TODO: Shouldn't there be some sort of indication if n can't be
-		completely factorized?
-	"""
-	N = 63787  # Placeholder (TODO)
-	n = n % N
-	print("function entered")
-	factors = []
-	for p in factor_base:
-		while(n!=0 and n%p == 0):
-			factors.append(p)
-			n =n//p
-	return factors
 
 
 def gcd(a, b):
@@ -131,27 +88,6 @@ def pow_mod(x, n, p):
 		x = x * x % p
 		n //= 2
 	return ans
-
-
-def solve_quad_congruence_brute(n, p):
-	"""
-	Helper method to solve the quadratic congruence x^2 - n = 0 (mod p).
-
-	Since p<=B is small, a simple brute force should be enough for this
-	function, but better algorithms may exist.
-	Useful in sieving below.
-	:param n: n
-	:param p: p
-	:return: Tuple of solutions to x^2 - n = 0 (mod p), or (-1,-1) if none
-		exists
-	"""
-	n %= p
-	if n == 0:
-		return 0, 0  # x = 0 (We just factorized n!!)
-	for x in range(1, p // 2 + 1):  # Check [1, p/2] since -x is a solution
-		if x * x % p == n:
-			return x, p-x
-	return -1, -1
 
 
 def solve_quad_congruence(n, p):
@@ -237,45 +173,6 @@ def solve_quad_congruence(n, p):
 # ----- Gathering numbers and Producing Solution ----- #
 
 
-def build_matrix(smooth_nums, factor_base):
-	"""
-	Construct a matrix of exponent vectors (from B-smooth x^2-n) mod 2.
-	:param smooth_nums: List of B-smooth x^2-n's
-	:param factor_base: List of available prime factors
-	:return: - Whether one of the B-smooth numbers is a perfect square
-			   mod n itself
-			 - If first argument is True, the perfect square;
-			   Otherwise, the entire matrix
-	TODO: Pass in exponent vetor as a parameter instead of
-		re-factorizing everything?
-	"""
-
-	# generates exponent vectors mod 2 from previously obtained smooth numbers, then builds matrix
-	M = []
-	#factor_base.insert(0,-1)
-
-
-	for n in smooth_nums:
-		exp_vector = [0]*(len(factor_base))
-		n_factors = factorize(n,factor_base)
-		print(n,n_factors)
-		for i in range(len(factor_base)):
-			if factor_base[i] in n_factors:
-				exp_vector[i] = (exp_vector[i] + n_factors.count(factor_base[i])) % 2
-
-		#print(n_factors, exp_vector)
-		if 1 not in exp_vector: #search for squares
-			return True, n
-		else:
-			pass
-
-		M.append(exp_vector)
-
-	#print("Matrix built:")
-	#mprint(M)
-	return(False, transpose(M))
-
-
 def build_matrix_from_vecs(exp_vecs):
 	"""
 	Construct a matrix of exponent vectors (from B-smooth x^2-n) mod 2,
@@ -321,7 +218,6 @@ def gauss_elim(M):
 	free_cols = [i for i in range(len(M[0])) if not marks[i]]
 	if not free_cols:
 		return []  # Only has trivial solution: fail
-	#print('# of free variables = %d' % len(free_cols))
 
 	def find_solution(assignment):
 		"""
@@ -341,7 +237,7 @@ def gauss_elim(M):
 				free_index += 1
 		return sol
 
-	# Search over all assignments of free variables by brute force
+	# Search over 5 random assignments of free variables
 	solutions = []
 	# assignments = [0] * (len(free_cols) - 1) + [1]  # Value of each free variable
 	# while assignments[0] <= 1:
@@ -359,8 +255,6 @@ def gauss_elim(M):
 				assignments[j] = random.randint(0, 1)
 		solutions.append(find_solution(assignments))
 
-	#print('Solutions to Gaussian:')
-	#print(solutions)
 	return solutions
 
 
@@ -416,53 +310,17 @@ def find_factor(N, nums, exp_vecs, factor_base):
 	:param N: n
 	:return: A factor of n, or -1 if unsuccessful
 	"""
-	#print(nums)
 	a = 1
 	for k in nums:
-		#a *= k
 		a = a * k % N
 
-	#print('All exponent vectors:')
-	#print(exp_vecs)
 	sum_exps = [0] * len(exp_vecs[0])  # Sum of all exponent vectors (for product)
 	for v in exp_vecs:
 		sum_exps = [x+y for x, y in zip(sum_exps, v)]
-	#print(sum_exps)
 
 	b = 1
 	for i in range(len(sum_exps)):
 		b = b * pow(factor_base[i], (sum_exps[i] // 2)) % N
 
-	#print(a)
-	#print(b)
-	#print(a * a % N)
-	#print(b * b % N)
 	return -1 if (a - b) % N == 0 or (a + b) % N == 0 else gcd(a - b + N, N)
-
-
-# M = [[0,0,0,0,1], [0,1,1,0,0], [1,0,1,1,0],[0,0,0,0,0]]
-# print(build_matrix_from_vecs([], M))
-# print(M)
-# print(gauss_elim(M))
-
-
-# N = 63787
-# print(get_prime(19))
-# print(is_cand((439**2)%N,get_prime(19)))
-# print(gcd(25,85))
-
-
-# smooth_nums = [439**2, 441**2, 444**2, 445**2, 447**2, 449**2]
-# factor_base = [2,3,5,7,11,13,17]
-
-# is_sqr, M = build_matrix(smooth_nums, factor_base)
-# print(M)
-# print([False]*len(M[0]))
-# sol_rows,marks,matrix = gauss_elim(M)
-# #print(sol_rows)
-# print(M)
-
-
-
-
 

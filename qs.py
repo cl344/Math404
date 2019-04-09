@@ -4,8 +4,8 @@ from functions import *
 import math
 from math import *
 
-N = 3744843080529615909019181510330554205500926021947  # 63787
-
+#N = 3744843080529615909019181510330554205500926021947  # 63787
+N = int(input("Please enter the number N: "))
 
 def sieve(N, B):
 	"""
